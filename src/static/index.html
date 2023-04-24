@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Upload file to S3</title>
+    <script src="https://unpkg.com/vue@1.0.28/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios@0.2.1/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Your Favorite ATM</h1>
+  
+      <div v-if="!interactive_input">
+        <div id="auth_screen" v-if="!loggedIn">
+            <h2>Enter account id and a 4 digit pin</h2>
+            <input type="text" id="account_id" name="account id">
+            <input type="text" id="pin" name="pin">
+            <button @click="authorize">Login</button>
+        </div>
+        <div id="data_area" v-else>
+            <button @click="balance">Balance</button>
+            <button @click="history">History</button>
+            <button @click="deposit">Deposit</button>
+            <button @click="withdraw">Withdraw</button>
+            <button @click="logout">Logout</button>
+            <p id = "result" v-text="result" ></p>
+        </div>
+       </div>
+    </div>
+  
+    <script>
+      axios.defaults.withCredentials = true;
+            
+      let va = new Vue({
+        el: "#app",
+        data: {
+          loggedIn: '',
+          result : ''
+        },
+        methods: {
+          authorize() {
+            let account_id = document.getElementById("account_id").value;
+            let pin = document.getElementById("pin").value;
+            axios.post('/authorize', {
+                account_id: account_id,
+                pin: pin
+            })
+            .then(function (response) {
+                console.log(response);
+                this.loggedIn = 'logged-in';
+                this.result = response;
+            }.bind(this))
+            .catch(function (error) {
+                console.log(error);
+                window.alert("Authorization failed");
+            });
+          },
+          balance () {
+            axios.get('/balance')
+            .then(function (response) {
+                console.log(response);
+                this.result = response;
+            }.bind(this))
+            .catch(function (error) {
+                console.log(error);
+                window.alert("Authorization required");
+                this.loggedIn = '';
+            }.bind(this));
+          },
+          history () {
+            axios.get('/history')
+            .then(function (response) {
+                console.log(response);
+                this.result = response;
+            }.bind(this))
+            .catch(function (error) {
+                console.log(error);
+                window.alert("Authorization required");
+                this.loggedIn = '';
+            }.bind(this));
+          },
+          deposit () {
+            let raw_amount=prompt('Enter amount here');
+            try {
+                let amount = parseInt(raw_amount);
+                if (isNaN(amount) || amount < 1) {
+                    alert("Only positive integer amount allowed.");
+                    return;
+                }
+                axios.post('/deposit', {
+                    amount: amount
+                })
+                .then(function (response) {
+                    console.log(response);
+                    this.result = response;
+                }.bind(this))
+                .catch(function (error) {
+                    console.log(error);
+                    window.alert("Authorization required");
+                    this.loggedIn = '';
+                }.bind(this));
+            } catch (err) {
+                console.log(err);
+            }
+          },
+          withdraw () {
+            let raw_amount=prompt('Enter amount here');
+            try {
+                let amount = parseInt(raw_amount);
+                if (isNaN(amount) || amount < 1) {
+                    alert("Amount must be equal or greater than 20");
+                    return;
+                }
+                axios.post('/withdraw', {
+                    amount: amount
+                })
+                .then(function (response) {
+                    console.log(response);
+                    this.result = response;
+                }.bind(this))
+                .catch(function (error) {
+                    console.log(error);
+                    window.alert("Authorization required");
+                    this.loggedIn = '';
+                }.bind(this));
+            } catch (err) {
+                console.log(err);
+            }
+          },
+          logout() {
+            axios.post('/logout')
+            .then(function (response) {
+                console.log(response);
+            }.bind(this))
+            .catch(function (error) {
+                console.log(error);
+            });
+            this.loggedIn = '';
+          }
+        }
+      })
+      axios.get('/balance')
+            .then(function (response) {
+                console.log("balance returned valid value");
+                va.loggedIn = 'logged_in';
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+
+    </script>
+    <style type="text/css">
+      body {
+        background: #20262E;
+        padding: 20px;
+        font-family: sans-serif;
+      }
+      #app {
+        background: #fff;
+        border-radius: 4px;
+        padding: 20px;
+        transition: all 0.2s;
+        text-align: center;
+      }
+      h2 {
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+      h1, h2 {
+        font-weight: normal;
+        margin-bottom: 15px;
+      }
+      p {
+        color: #42b983;
+      }
+      #result {
+        white-space: pre-wrap;
+        text-align: left;
+      }
+    </style>
+  </body>
+</html>
