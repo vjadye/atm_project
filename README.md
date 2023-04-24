@@ -1,6 +1,6 @@
 ### Introduction ###
 This repository implements a bank server for an ATM system.
-The requirements for the project are in this file and the system design is here.
+The requirements for the project are in atm-design-problem-requirements.pdf and the system design is in atm_design.drawio.png
 
 ### Setup ###
 Clone the git repo and run
